@@ -1,5 +1,6 @@
+import React, { useState } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Image, Platform } from 'react-native';
+import { StyleSheet, Image, Platform, TextInput, TouchableOpacity } from 'react-native';
 
 import { Collapsible } from '@/components/Collapsible';
 import { ExternalLink } from '@/components/ExternalLink';
@@ -7,7 +8,25 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
+type WelcomeResponse = {
+  message: string;
+};
+
 export default function TabTwoScreen() {
+  const [nom, setNom] = useState('');
+  const [message, setMessage] = useState('');
+
+  const fetchWelcomeMessage = async () => {
+    try {
+      const response = await fetch(`http://votre-adresse-ip:3000/api/hello?nom=${encodeURIComponent(nom)}`);
+      const data: WelcomeResponse = await response.json();
+      setMessage(data.message);
+    } catch (error) {
+      console.error('Erreur lors de la récupération du message:', error);
+      setMessage('Erreur lors de la récupération du message');
+    }
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
@@ -15,6 +34,21 @@ export default function TabTwoScreen() {
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Explore</ThemedText>
       </ThemedView>
+      
+      <ThemedView style={styles.welcomeContainer}>
+        <TextInput
+          style={styles.input}
+          onChangeText={setNom}
+          value={nom}
+          placeholder="Entrez votre nom"
+          placeholderTextColor="#888"
+        />
+        <TouchableOpacity style={styles.button} onPress={fetchWelcomeMessage}>
+          <ThemedText style={styles.buttonText}>Obtenir le message</ThemedText>
+        </TouchableOpacity>
+        {message ? <ThemedText style={styles.message}>{message}</ThemedText> : null}
+      </ThemedView>
+
       <ThemedText>This app includes example code to help you get started.</ThemedText>
       <Collapsible title="File-based routing">
         <ThemedText>
@@ -98,5 +132,31 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     gap: 8,
+  },
+  welcomeContainer: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  input: {
+    height: 40,
+    width: '80%',
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  message: {
+    marginTop: 10,
+    fontSize: 16,
   },
 });
